@@ -1,0 +1,33 @@
+Commands:
+Forcefield and Topology generation:
+gmx pdb2gmx -f protein.pdb -ignh -o molecule_ff.pdb -p topol.top 
+choose: 8 -> CHARMM27 all-atom force field (CHARM22 plus CMAP for proteins)
+	1 -> TIP3P   TIP 3-point, recommended
+
+Box creation:
+gmx editconf -f molecule_ff.pdb -o molecule_box.pdb -d 0.5 -bt triclinic
+
+System solvation:
+gmx solvate -cp molecule_box.pdb -cs spc216.gro -p topol.top -o molecule_solv.pdb
+
+Ion addition:
+gmx grompp -f ions.mdp -c molecule_solv.pdb -o ions.tpr -p topol.top 
+gmx genion -s ions.tpr -o molecule_ions.pdb -p topol.top -pname NA -nname CL -neutral -conc 0.1 
+choose: 13
+
+
+Energy minimization:
+gmx grompp -f minim.mdp -c molecule_ions.pdb -p topol.top -o em.tpr 
+gmx mdrun -v -deffnm em
+
+NVT (constant Number of particles, Volume, and Temperature) equilibration:
+gmx grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr 
+gmx mdrun -v -deffnm nvt
+
+NPT (constant Number of particles, Pressure, and Temperature) equilibration:
+gmx grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p topol.top -o npt.tpr 
+gmx mdrun -v -deffnm npt
+
+Final MD simulation:
+gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md.tpr 
+gmx mdrun -v -deffnm md

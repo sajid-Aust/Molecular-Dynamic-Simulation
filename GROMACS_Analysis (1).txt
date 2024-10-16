@@ -1,0 +1,37 @@
+gmx trjconv -s md.tpr -f md.xtc -o md_new.xtc -center -pbc mol -ur compact
+
+select group for centering: Protein
+select group for output: System
+
+Analysis
+
+gmx rms -s md.tpr -f md_new.xtc -o RMSD_Protein.xvg -tu ns
+
+select "Backbone" for least square fit and select "Backbone" for RMSD calculation
+
+gmx rmsf -s md.tpr -f md_new.xtc -o RMSF.xvg -res
+
+select "Protein"
+
+gmx gyrate -s md.tpr -f md_new.xtc -o Rg.xvg 
+
+select "Protein"
+
+gmx make_ndx -f md.tpr
+If you only want the wild-type protein: select "Protein" then "q"
+select "Protein" select "water"
+gmx hbond -f md_new.xtc -n index.ndx -s md.tpr -num Hbond.xvg -tu ns
+select "Protein" and select "water"
+
+gmx sasa -f md_new.xtc -s md.tpr -o SASA.xvg -tu ns
+
+select "Protein"
+
+
+
+
+
+
+
+
+
